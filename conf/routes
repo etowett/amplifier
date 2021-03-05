@@ -13,8 +13,10 @@ GET         /health                                     App.Health
 # API Routes
 POST        /api/v1/aft                                 SMSApi.Aft
 GET         /api/v1/aft                                 SMSApi.Aft
-POST        /api/v1/aft-redis                           SMSApi.Aft
-POST        /api/v1/aft-sqs                             SMSApi.Aft
+POST        /api/v1/aft-redis                           SMSApi.AftRedis
+GET         /api/v1/aft-redis                           SMSApi.AftRedis
+POST        /api/v1/aft-sqs                             SMSApi.AftSQS
+GET         /api/v1/aft-sqs                             SMSApi.AftSQS
 
 # Ignore favicon requests
 GET     /favicon.ico                                    Static.Serve("public/img","favicon.png")

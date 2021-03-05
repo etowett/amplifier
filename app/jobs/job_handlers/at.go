@@ -37,6 +37,8 @@ func (h *ATJobHandler) PerformJob(
 		return nil
 	}
 
+	revel.AppLog.Infof("ATJobHandler job: =[%+v]", theJob)
+
 	if theJob.Multi {
 		for _, rec := range theJob.Recipients {
 			job := sms_jobs.NewATSendJob(theJob.SenderID, rec["message"], []*entities.SMSRecipient{{

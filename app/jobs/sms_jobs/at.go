@@ -43,7 +43,7 @@ func (h *ProcessATJob) JobBody() (string, error) {
 
 func (h *ProcessATJob) JobOptions() []jobs.PerformJobOption {
 	return []jobs.PerformJobOption{
-		jobs.WithMaxConcurrency(5),
+		jobs.WithMaxConcurrency(10),
 		jobs.WithMaxFails(2),
 		jobs.WithLowPriority(),
 	}

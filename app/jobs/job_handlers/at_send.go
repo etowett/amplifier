@@ -23,7 +23,7 @@ func NewATSendJobHandler(africasTalkingSender providers.AfricasTalkingSender) *A
 }
 
 func (h *ATSendJobHandler) Job() jobs.Job {
-	return &sms_jobs.ProcessATJob{}
+	return &sms_jobs.ATSendJob{}
 }
 
 func (h *ATSendJobHandler) PerformJob(
@@ -36,7 +36,7 @@ func (h *ATSendJobHandler) PerformJob(
 		fmt.Printf("error unmarshal task: %v", err)
 		return nil
 	}
-	revel.AppLog.Infof("ATSendJobHandler theJob: %+v", theJob)
+	revel.AppLog.Infof("ATSendJobHandler theJob: =[%+v]", theJob)
 
 	_, err = h.africasTalkingSender.Send(&entities.SendRequest{
 		SenderID: theJob.SenderID,

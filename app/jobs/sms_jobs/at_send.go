@@ -27,7 +27,7 @@ func NewATSendJob(
 }
 
 func (h *ATSendJob) JobName() string {
-	return processAtJobName
+	return atSendJobName
 }
 
 func (h *ATSendJob) JobBody() (string, error) {
@@ -41,7 +41,7 @@ func (h *ATSendJob) JobBody() (string, error) {
 
 func (h *ATSendJob) JobOptions() []jobs.PerformJobOption {
 	return []jobs.PerformJobOption{
-		jobs.WithMaxConcurrency(30),
+		jobs.WithMaxConcurrency(50),
 		jobs.WithMaxFails(2),
 		jobs.WithLowPriority(),
 	}

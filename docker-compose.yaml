@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 services:
   amplifier:
@@ -28,5 +28,5 @@ services:
     depends_on:
       - "redis"
     environment:
-    - REDIS_NAMESPACE=amplifier
-    - REDIS_HOST=redis://:MDNcVb924a@redis:6379
+      - REDIS_NAMESPACE=amplifier
+      - REDIS_HOST=redis://:MDNcVb924a@redis:6379

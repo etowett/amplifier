@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	redisManager *db.AppRedis
-	jobEnqueuer  *work.AppJobEnqueuer
+	redisManager         *db.AppRedis
+	jobEnqueuer          *work.AppJobEnqueuer
+	africasTalkingSender *providers.AppAfricasTalkingSender
 )
 
 func init() {
@@ -22,6 +23,12 @@ func init() {
 }
 
 func InitApp() {
+	africasTalkingSender = providers.NewAfricasTalkingSenderWithParameters(
+		revel.Config.StringDefault("aft.url", ""),
+		revel.Config.StringDefault("aft.user", ""),
+		revel.Config.StringDefault("aft.key", ""),
+	)
+
 	redisManager = db.NewRedisProvider(&db.RedisConfig{
 		IdleTimeout: 2 * time.Minute,
 		MaxActive:   1000,
@@ -32,21 +39,23 @@ func InitApp() {
 
 	jobEnqueuer = work.NewJobEnqueuer(redisPool)
 
-	workerPool := work.NewWorkerPool(redisPool, uint(10))
+	workerPool := work.NewWorkerPool(redisPool, uint(200))
 
-	jobHandlers := setupJobHandlers(jobEnqueuer)
+	jobHandlers := setupJobHandlers(
+		africasTalkingSender,
+		jobEnqueuer,
+	)
 
 	workerPool.RegisterJobs(jobHandlers...)
 
 	workerPool.Start(context.Background())
+
 }
 
-func setupJobHandlers(jobEnqueuer work.JobEnqueuer) []jobs.JobHandler {
-	africasTalkingSender := providers.NewAfricasTalkingSenderWithParameters(
-		revel.Config.StringDefault("aft.url", ""),
-		revel.Config.StringDefault("aft.user", ""),
-		revel.Config.StringDefault("aft.key", ""),
-	)
+func setupJobHandlers(
+	africasTalkingSender providers.AfricasTalkingSender,
+	jobEnqueuer work.JobEnqueuer,
+) []jobs.JobHandler {
 
 	workOnATJobHandler := job_handlers.NewATJobHandler(jobEnqueuer)
 	workOnATSendJobHandler := job_handlers.NewATSendJobHandler(africasTalkingSender)
