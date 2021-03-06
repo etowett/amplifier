@@ -11,6 +11,8 @@ services:
       - .:/amplifier
     depends_on:
       - redis
+    env_file:
+      - .env
     environment:
       - ENV=dev
       - REDIS_URL=redis://:MDNcVb924a@redis:6379

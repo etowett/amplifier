@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"amplifier/app/awsservices"
 	"amplifier/app/db"
 	"amplifier/app/jobs"
 	"amplifier/app/jobs/job_handlers"
@@ -16,6 +17,7 @@ var (
 	redisManager         *db.AppRedis
 	jobEnqueuer          *work.AppJobEnqueuer
 	africasTalkingSender *providers.AppAfricasTalkingSender
+	sqsConn              *awsservices.SQSClient
 )
 
 func init() {
@@ -50,17 +52,27 @@ func InitApp() {
 
 	workerPool.Start(context.Background())
 
+	sqsConn = awsservices.NewSQSClient()
+
+	spinGoRoutines()
 }
 
 func setupJobHandlers(
 	africasTalkingSender providers.AfricasTalkingSender,
 	jobEnqueuer work.JobEnqueuer,
 ) []jobs.JobHandler {
-
 	workOnATJobHandler := job_handlers.NewATJobHandler(jobEnqueuer)
 	workOnATSendJobHandler := job_handlers.NewATSendJobHandler(africasTalkingSender)
 	return []jobs.JobHandler{
 		workOnATJobHandler,
 		workOnATSendJobHandler,
+	}
+}
+
+func spinGoRoutines() {
+	go processATRequests()
+
+	for i := 0; i < 20; i++ {
+		go processATSendRequests(i)
 	}
 }

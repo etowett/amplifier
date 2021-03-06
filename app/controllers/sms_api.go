@@ -39,10 +39,11 @@ func (c *SMSApi) validateATRequest(atForm *forms.ATForm) map[string]interface{} 
 		isMulti = true
 	}
 	return map[string]interface{}{
-		"count":   reqCount,
-		"message": smsBody,
-		"multi":   isMulti,
-		"recs":    helpers.GetRecipients(reqCount, isMulti),
+		"count":     reqCount,
+		"message":   smsBody,
+		"multi":     isMulti,
+		"sender_id": "Amplifier",
+		"recs":      helpers.GetRecipients(reqCount, isMulti),
 	}
 }
 
@@ -75,7 +76,7 @@ func (c *SMSApi) Aft() revel.Result {
 			recs := []*entities.SMSRecipient{
 				{Phone: rec["phone"]},
 			}
-			err := c.sendToAT("Amplifier", rec["message"], recs)
+			err := c.sendToAT(data["sender_id"].(string), rec["message"], recs)
 			if err != nil {
 				c.Log.Errorf("to send to AT: %v", err)
 				status = http.StatusInternalServerError
@@ -136,7 +137,7 @@ func (c *SMSApi) AftRedis() revel.Result {
 
 	job := sms_jobs.NewATJob(
 		data["message"].(string),
-		"Amplifier",
+		data["sender_id"].(string),
 		data["multi"].(bool),
 		data["recs"].([]map[string]string),
 	)
@@ -176,7 +177,30 @@ func (c SMSApi) AftSQS() revel.Result {
 	c.Log.Infof("Given at request: %+v", atForm)
 
 	data := c.validateATRequest(atForm)
-	c.Log.Infof("sqs not implemented - %+v!", data)
+
+	theQueue, err := sqsConn.GetQueueURL(revel.Config.StringDefault("aft.requests_queue", ""))
+	if err != nil {
+		c.Log.Errorf("Failed AT job get queue: %v", err)
+		status = http.StatusInternalServerError
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Success: false,
+			Status:  status,
+			Message: fmt.Sprintf("failed to enqueue request for processing: %v", err),
+		})
+	}
+
+	err = sqsConn.MessageToQueue(theQueue.QueueUrl, data)
+	if err != nil {
+		c.Log.Errorf("Failed AT job enqueue: %v", err)
+		status = http.StatusInternalServerError
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Success: false,
+			Status:  status,
+			Message: fmt.Sprintf("failed to enqueue request for processing: %v", err),
+		})
+	}
 
 	status = http.StatusCreated
 	c.Response.SetStatus(status)
