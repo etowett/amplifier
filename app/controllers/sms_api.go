@@ -168,50 +168,55 @@ func (c *SMSApi) AftRedis() revel.Result {
 }
 
 func (c SMSApi) AftSQS() revel.Result {
-	var status int
-	atForm := &forms.ATForm{}
-	err := c.Params.BindJSON(atForm)
-	if err != nil {
-		c.Log.Infof("AT form bind error: %[+v], will use defaults", err)
-	}
-	c.Log.Infof("Given at request: %+v", atForm)
-
-	data := c.validateATRequest(atForm)
-
-	theQueue, err := sqsConn.GetQueueURL(revel.Config.StringDefault("aft.requests_queue", ""))
-	if err != nil {
-		c.Log.Errorf("Failed AT job get queue: %v", err)
-		status = http.StatusInternalServerError
-		c.Response.SetStatus(status)
-		return c.RenderJSON(entities.Response{
-			Success: false,
-			Status:  status,
-			Message: fmt.Sprintf("failed to enqueue request for processing: %v", err),
-		})
-	}
-
-	err = sqsConn.MessageToQueue(theQueue.QueueUrl, data)
-	if err != nil {
-		c.Log.Errorf("Failed AT job enqueue: %v", err)
-		status = http.StatusInternalServerError
-		c.Response.SetStatus(status)
-		return c.RenderJSON(entities.Response{
-			Success: false,
-			Status:  status,
-			Message: fmt.Sprintf("failed to enqueue request for processing: %v", err),
-		})
-	}
-
-	status = http.StatusCreated
-	c.Response.SetStatus(status)
+	status := http.StatusOK
 	return c.RenderJSON(entities.Response{
 		Success: true,
 		Status:  status,
-		Message: "message queued for processing.",
-		Data: map[string]interface{}{
-			"count":   data["count"].(int),
-			"message": data["message"].(string),
-			"multi":   data["multi"].(bool),
-		},
+		Message: "Ok",
 	})
+	// atForm := &forms.ATForm{}
+	// err := c.Params.BindJSON(atForm)
+	// if err != nil {
+	// 	c.Log.Infof("AT form bind error: %[+v], will use defaults", err)
+	// }
+	// c.Log.Infof("Given at request: %+v", atForm)
+
+	// data := c.validateATRequest(atForm)
+
+	// theQueue, err := sqsConn.GetQueueURL(revel.Config.StringDefault("aft.requests_queue", ""))
+	// if err != nil {
+	// 	c.Log.Errorf("Failed AT job get queue: %v", err)
+	// 	status = http.StatusInternalServerError
+	// 	c.Response.SetStatus(status)
+	// 	return c.RenderJSON(entities.Response{
+	// 		Success: false,
+	// 		Status:  status,
+	// 		Message: fmt.Sprintf("failed to enqueue request for processing: %v", err),
+	// 	})
+	// }
+
+	// err = sqsConn.MessageToQueue(theQueue.QueueUrl, data)
+	// if err != nil {
+	// 	c.Log.Errorf("Failed AT job enqueue: %v", err)
+	// 	status = http.StatusInternalServerError
+	// 	c.Response.SetStatus(status)
+	// 	return c.RenderJSON(entities.Response{
+	// 		Success: false,
+	// 		Status:  status,
+	// 		Message: fmt.Sprintf("failed to enqueue request for processing: %v", err),
+	// 	})
+	// }
+
+	// status = http.StatusCreated
+	// c.Response.SetStatus(status)
+	// return c.RenderJSON(entities.Response{
+	// 	Success: true,
+	// 	Status:  status,
+	// 	Message: "message queued for processing.",
+	// 	Data: map[string]interface{}{
+	// 		"count":   data["count"].(int),
+	// 		"message": data["message"].(string),
+	// 		"multi":   data["multi"].(bool),
+	// 	},
+	// })
 }

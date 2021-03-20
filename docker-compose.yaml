@@ -16,17 +16,29 @@ services:
     environment:
       - ENV=dev
       - REDIS_URL=redis://:MDNcVb924a@redis:6379
+      - DB_URL=postgres://amplifier:amplifier@postgres/amplifier?sslmode=disable
+
+  postgres:
+    image: postgres:13.2-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/apps/amplifier/pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=amplifier
+      - POSTGRES_USER=amplifier
+      - POSTGRES_DB=amplifier
 
   redis:
-    image: redis:6.0-alpine
-    ports:
-      - 6379:6379
+    image: redis:6.2-alpine
+    # ports:
+    #   - 6379:6379
     command: redis-server --requirepass MDNcVb924a
 
   workwebui:
     image: ektowett/workwebui:latest
-    ports:
-      - 5040:5040
+    # ports:
+    #   - 5040:5040
     depends_on:
       - "redis"
     environment:
