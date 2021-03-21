@@ -8,15 +8,15 @@ services:
     ports:
       - 4000:4000
     volumes:
-      - .:/amplifier
+      - .:/app
     depends_on:
       - redis
     env_file:
       - .env
     environment:
       - ENV=dev
-      - REDIS_URL=redis://:MDNcVb924a@redis:6379
       - DB_URL=postgres://amplifier:amplifier@postgres/amplifier?sslmode=disable
+      - REDIS_URL=redis://:MDNcVb924a@redis:6379
 
   postgres:
     image: postgres:13.2-alpine

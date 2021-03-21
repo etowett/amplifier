@@ -1,6 +1,8 @@
 package app
 
 import (
+	"amplifier/app/db"
+
 	"github.com/revel/revel"
 )
 
@@ -34,8 +36,18 @@ func init() {
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
 	// revel.OnAppStart(ExampleStartupScript)
-	// revel.OnAppStart(InitDB)
+	revel.OnAppStart(initDB)
 	// revel.OnAppStart(FillCache)
+
+	revel.OnAppStop(func() {
+		if err := db.DB().Close(); err != nil {
+			revel.AppLog.Errorf("Failed to close the database: %v", err)
+		}
+	})
+}
+
+func initDB() {
+	db.InitDB()
 }
 
 // HeaderFilter adds common security headers

@@ -5,6 +5,7 @@ import (
 	"amplifier/app/entities"
 	"amplifier/app/forms"
 	"amplifier/app/models"
+	"database/sql"
 
 	"github.com/revel/revel"
 	"golang.org/x/crypto/bcrypt"
@@ -118,10 +119,10 @@ func (c Users) Get(id int64) revel.Result {
 	if loggedInUser == nil {
 		return c.Redirect(App.Index)
 	}
-	newUser := models.User{}
+	newUser := &models.User{}
 	foundUser, err := newUser.ByID(c.Request.Context(), db.DB(), id)
 	if err != nil {
-		if err.Error() == "record not found" {
+		if err == sql.ErrNoRows {
 			return c.Render(entities.Response{
 				Success: false,
 				Message: "Record not found!",

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"amplifier/app"
 	"amplifier/app/db"
 	"amplifier/app/models"
 	"time"
@@ -33,6 +34,8 @@ func (c App) Health() revel.Result {
 		"success":     true,
 		"message":     "Ok",
 		"server_time": time.Now().String(),
+		"version":     app.AppVersion,
+		"build_time":  app.BuildTime,
 	})
 }
 

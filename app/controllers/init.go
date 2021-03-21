@@ -21,6 +21,8 @@ var (
 
 func init() {
 	revel.OnAppStart(InitApp)
+
+	revel.InterceptMethod(App.AddUser, revel.BEFORE)
 }
 
 func InitApp() {

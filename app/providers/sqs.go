@@ -1,4 +1,4 @@
-package awsservices
+package providers
 
 import (
 	"encoding/json"
