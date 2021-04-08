@@ -16,10 +16,24 @@ var (
 	redisManager         *db.AppRedis
 	jobEnqueuer          *work.AppJobEnqueuer
 	africasTalkingSender *providers.AppAfricasTalkingSender
+	// sqsConn              *awsservices.SQSClient
 )
 
 func init() {
 	revel.OnAppStart(InitApp)
+	revel.InterceptMethod(App.AddUser, revel.BEFORE)
+	revel.InterceptMethod(Credentials.checkUser, revel.BEFORE)
+	revel.InterceptMethod(Requests.checkUser, revel.BEFORE)
+
+	revel.TemplateFuncs["formatDate"] = func(theTime time.Time) string {
+		timeLocation, err := time.LoadLocation("Africa/Nairobi")
+		if err != nil {
+			revel.AppLog.Errorf("failed to load Nairobi timezone: %+v", err)
+			return theTime.Format("Jan _2 2006 3:04PM")
+		}
+
+		return theTime.In(timeLocation).Format("Jan _2 2006 3:04PM")
+	}
 }
 
 func InitApp() {
@@ -50,13 +64,15 @@ func InitApp() {
 
 	workerPool.Start(context.Background())
 
+	// sqsConn = awsservices.NewSQSClient()
+
+	// spinGoRoutines()
 }
 
 func setupJobHandlers(
 	africasTalkingSender providers.AfricasTalkingSender,
 	jobEnqueuer work.JobEnqueuer,
 ) []jobs.JobHandler {
-
 	workOnATJobHandler := job_handlers.NewATJobHandler(jobEnqueuer)
 	workOnATSendJobHandler := job_handlers.NewATSendJobHandler(africasTalkingSender)
 	return []jobs.JobHandler{
@@ -64,3 +80,11 @@ func setupJobHandlers(
 		workOnATSendJobHandler,
 	}
 }
+
+// func spinGoRoutines() {
+// 	go processATRequests()
+
+// 	for i := 0; i < 20; i++ {
+// 		go processATSendRequests(i)
+// 	}
+// }

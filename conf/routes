@@ -8,7 +8,22 @@ module:testrunner
 
 
 GET         /                                           App.Index
+GET         /dash                                       App.Dash
 GET         /health                                     App.Health
+
+GET         /register                                   Users.Register
+POST        /register                                   Users.Save
+GET         /login                                      Users.Login
+POST        /login                                      Users.DoLogin
+GET         /logout                                     Users.Logout
+GET         /user/:id                                   Users.Get
+
+GET         /credentials                                Credentials.All
+
+GET         /requests                                   Requests.All
+
+# API Routes
+POST        /api/v1/user                                UsersAPI.Save
 
 # API Routes
 POST        /api/v1/aft                                 SMSApi.Aft
