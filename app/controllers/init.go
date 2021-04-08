@@ -21,8 +21,19 @@ var (
 
 func init() {
 	revel.OnAppStart(InitApp)
-
 	revel.InterceptMethod(App.AddUser, revel.BEFORE)
+	revel.InterceptMethod(Credentials.checkUser, revel.BEFORE)
+	revel.InterceptMethod(Requests.checkUser, revel.BEFORE)
+
+	revel.TemplateFuncs["formatDate"] = func(theTime time.Time) string {
+		timeLocation, err := time.LoadLocation("Africa/Nairobi")
+		if err != nil {
+			revel.AppLog.Errorf("failed to load Nairobi timezone: %+v", err)
+			return theTime.Format("Jan _2 2006 3:04PM")
+		}
+
+		return theTime.In(timeLocation).Format("Jan _2 2006 3:04PM")
+	}
 }
 
 func InitApp() {

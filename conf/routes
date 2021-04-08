@@ -18,6 +18,10 @@ POST        /login                                      Users.DoLogin
 GET         /logout                                     Users.Logout
 GET         /user/:id                                   Users.Get
 
+GET         /credentials                                Credentials.All
+
+GET         /requests                                   Requests.All
+
 # API Routes
 POST        /api/v1/user                                UsersAPI.Save
 
