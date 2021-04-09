@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	createRequestSQL     = `insert into requests (app, multi, cont, message, times, created_at) values ($1, $2, $3, $4, $5, $6) returning id`
-	selectRequestSQL     = `select id, app, multi, cont, message, times, created_at from requests`
+	createRequestSQL     = `insert into requests (app, multi, number, message, times, created_at) values ($1, $2, $3, $4, $5, $6) returning id`
+	selectRequestSQL     = `select id, app, multi, number, message, times, created_at from requests`
 	selectRequestSQLByID = selectCredentialSQL + ` where id=$1`
 	countRequestSQL      = `select count(id) from requests`
 )
@@ -22,27 +22,27 @@ type (
 		App     string
 		Multi   bool
 		Number  int
-		Message int
+		Message string
 		Times   int
 		Timestamps
 	}
 )
 
-func (r *Request) Save(
+func (m *Request) Save(
 	ctx context.Context,
 	db db.SQLOperations,
 ) error {
-	r.Timestamps.Touch()
+	m.Timestamps.Touch()
 	err := db.QueryRowContext(
 		ctx,
 		createRequestSQL,
-		r.App,
-		r.Multi,
-		r.Number,
-		r.Message,
-		r.Times,
-		r.Timestamps.CreatedAt,
-	).Scan(&r.ID)
+		m.App,
+		m.Multi,
+		m.Number,
+		m.Message,
+		m.Times,
+		m.Timestamps.CreatedAt,
+	).Scan(&m.ID)
 	return err
 }
 

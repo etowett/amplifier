@@ -1,0 +1,73 @@
+{{set . "title" "Amplifier - Add Request"}}
+{{template "header.html" .}}
+
+  <div class="py-5 px-3">
+    <h1>Create Request</h1>
+
+    <form action="{{url "Requests.Save"}}" method="POST" class="form-horizontal" role="form">
+      {{ with $field := field "request.UserID" . }}
+      <input type="hidden" name="{{$field.Name}}" id="{{$field.Name}}" value="{{$.user.ID}}" />
+      <span class="help-block text-danger">{{$field.Error}}</span>
+      {{end}}
+
+      {{with $field := field "request.App" .}}
+      <div class="form-group row {{if $field.Error}}has-error{{end}}">
+        <label class="col-sm-2 col-form-label" for="{{$field.Name}}">App</label>
+        <div class="col-sm-10">
+          <input type="text" id="{{$field.Name}}" name="{{$field.Name}}" class="form-control" placeholder="App" value="{{$field.Flash}}" autofocus />
+          <span class="help-block text-danger">{{$field.Error}}</span>
+        </div>
+      </div>
+      {{ end }}
+
+      {{ with $field := field "request.Message" . }}
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label" for="{{$field.Name}}">Message</label>
+        <div class="col-sm-10">
+          <textarea name="{{$field.Name}}" id="{{$field.Name}}" cols="15" rows="5"  class="form-control" placeholder="Message">{{$field.Flash}}</textarea>
+          <span class="help-block text-danger">{{$field.Error}}</span>
+        </div>
+      </div>
+      {{ end }}
+
+      {{with $field := field "request.Multi" .}}
+      <div class="form-group row {{if $field.Error}}has-error{{end}}">
+        <label class="col-sm-2 col-form-label" for="{{$field.Name}}">Multi</label>
+        <div class="col-sm-8">
+            <input type="checkbox" id="{{$field.Name}}" name="{{$field.Name}}" value="true" />
+            <span class="help-block text-danger">{{$field.Error}}</span>
+        </div>
+      </div>
+      {{ end }}
+
+      {{with $field := field "request.Count" .}}
+      <div class="form-group row {{if $field.Error}}has-error{{end}}">
+        <label class="col-sm-2 col-form-label" for="{{$field.Name}}">Count</label>
+        <div class="col-sm-10">
+          <input type="text" id="{{$field.Name}}" name="{{$field.Name}}" class="form-control" placeholder="Count" value="{{$field.Flash}}" />
+          <span class="help-block text-danger">{{$field.Error}}</span>
+        </div>
+      </div>
+      {{ end }}
+
+      {{with $field := field "request.Times" .}}
+      <div class="form-group row {{if $field.Error}}has-error{{end}}">
+        <label class="col-sm-2 col-form-label" for="{{$field.Name}}">Times</label>
+        <div class="col-sm-10">
+          <input type="text" id="{{$field.Name}}" name="{{$field.Name}}" class="form-control" placeholder="Times" value="{{$field.Flash}}" />
+          <span class="help-block text-danger">{{$field.Error}}</span>
+        </div>
+      </div>
+      {{ end }}
+
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label"></label>
+        <div class="col-sm-10">
+          <button type="submit" class="btn btn-primary">Add</button>
+          <a href="{{url "Requests.All"}}" type="submit" class="btn btn-danger">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+{{template "footer.html" .}}

@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"amplifier/app/db"
-	"amplifier/app/jobs"
-	"amplifier/app/jobs/job_handlers"
 	"amplifier/app/providers"
+	"amplifier/app/tasks"
+	"amplifier/app/tasks/job_handlers"
 	"amplifier/app/work"
 	"context"
 	"time"
@@ -55,7 +55,7 @@ func InitApp() {
 
 	workerPool := work.NewWorkerPool(redisPool, uint(200))
 
-	jobHandlers := setupJobHandlers(
+	jobHandlers := setupTaskHandlers(
 		africasTalkingSender,
 		jobEnqueuer,
 	)
@@ -69,13 +69,13 @@ func InitApp() {
 	// spinGoRoutines()
 }
 
-func setupJobHandlers(
+func setupTaskHandlers(
 	africasTalkingSender providers.AfricasTalkingSender,
 	jobEnqueuer work.JobEnqueuer,
-) []jobs.JobHandler {
+) []tasks.JobHandler {
 	workOnATJobHandler := job_handlers.NewATJobHandler(jobEnqueuer)
 	workOnATSendJobHandler := job_handlers.NewATSendJobHandler(africasTalkingSender)
-	return []jobs.JobHandler{
+	return []tasks.JobHandler{
 		workOnATJobHandler,
 		workOnATSendJobHandler,
 	}

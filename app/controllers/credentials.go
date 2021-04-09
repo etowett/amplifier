@@ -3,6 +3,7 @@ package controllers
 import (
 	"amplifier/app/db"
 	"amplifier/app/entities"
+	"amplifier/app/forms"
 	"amplifier/app/models"
 	"amplifier/app/webutils"
 
@@ -57,3 +58,47 @@ func (c Credentials) All() revel.Result {
 	}
 	return c.Render(result)
 }
+
+func (c Credentials) New() revel.Result {
+	return c.Render()
+}
+
+func (c Credentials) Save(credential *forms.Credential) revel.Result {
+
+	v := c.Validation
+	credential.Validate(v)
+
+	if v.HasErrors() {
+		v.Keep()
+		c.FlashParams()
+		return c.Redirect(Credentials.New)
+	}
+
+	newCredential := &models.Credential{
+		App:      credential.App,
+		Url:      credential.Url,
+		Username: credential.Username,
+		Password: credential.Password,
+	}
+	err := newCredential.Save(c.Request.Context(), db.DB())
+	if err != nil {
+		c.Log.Errorf("could not save credential: %v", err)
+		c.Flash.Error("internal server error -  could not save credential")
+		c.FlashParams()
+		return c.Redirect(Credentials.New)
+	}
+
+	c.Flash.Success("credential created - " + newCredential.Username)
+	return c.Redirect(Credentials.All)
+}
+
+// func (c Credentials) Delete(id int64) revel.Result {
+// 	newCredential := &models.Credential{}
+// 	newCredential.ID = id
+// 	_, err := newCredential.Delete(c.Request.Context(), db.DB())
+// 	if err != nil {
+// 		c.Log.Errorf("error newCredential =[%v] delete: %v", id, err)
+// 	}
+
+// 	return c.Redirect(Credentials.All)
+// }

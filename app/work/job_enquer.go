@@ -1,7 +1,7 @@
 package work
 
 import (
-	"amplifier/app/jobs"
+	"amplifier/app/tasks"
 	"context"
 	"time"
 
@@ -18,8 +18,8 @@ const (
 )
 
 type JobEnqueuer interface {
-	Enqueue(ctx context.Context, job jobs.Job) (string, error)
-	EnqueueIn(ctx context.Context, job jobs.Job, duration time.Duration) (string, error)
+	Enqueue(ctx context.Context, job tasks.Job) (string, error)
+	EnqueueIn(ctx context.Context, job tasks.Job, duration time.Duration) (string, error)
 }
 
 type AppJobEnqueuer struct {
@@ -32,17 +32,21 @@ func NewJobEnqueuer(pool *redis.Pool) *AppJobEnqueuer {
 	}
 }
 
-func (e *AppJobEnqueuer) Enqueue(ctx context.Context, job jobs.Job) (string, error) {
+func (e *AppJobEnqueuer) Enqueue(ctx context.Context, job tasks.Job) (string, error) {
 	return e.enqueue(ctx, job, 0)
 }
 
-func (e *AppJobEnqueuer) EnqueueIn(ctx context.Context, job jobs.Job, duration time.Duration) (string, error) {
+func (e *AppJobEnqueuer) EnqueueIn(
+	ctx context.Context,
+	job tasks.Job,
+	duration time.Duration,
+) (string, error) {
 	return e.enqueue(ctx, job, duration)
 }
 
 func (e *AppJobEnqueuer) enqueue(
 	ctx context.Context,
-	job jobs.Job,
+	job tasks.Job,
 	duration time.Duration,
 ) (string, error) {
 
@@ -60,7 +64,7 @@ func (e *AppJobEnqueuer) enqueue(
 	if duration > 0 {
 		var scheduledJob *work.ScheduledJob
 		scheduledJob, err = e.enqueuer.EnqueueIn(job.JobName(), int64(duration.Seconds()), args)
-		if err != nil {
+		if err == nil {
 			internalJob = scheduledJob.Job
 		}
 	} else {

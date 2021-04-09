@@ -10,61 +10,65 @@ import (
 )
 
 const (
-	createCredentialSQL     = `insert into credentials (app, username, password, created_at, updated_at) values ($1, $2, $3, $4, $5) returning id`
-	selectCredentialSQL     = `select id, app, username, password, created_at, updated_at from credentials`
-	selectCredentialSQLByID = selectCredentialSQL + ` where id=$1`
-	countCredentialSQL      = `select count(id) from credentials`
-	updateCredentialSQL     = `update credentials set (app, username, password, updated_at) = ($1, $2, $3, $4) where id=$5`
+	createCredentialSQL      = `insert into credentials (app, url, username, password, created_at) values ($1, $2, $3, $4, $5) returning id`
+	selectCredentialSQL      = `select id, app, url, username, password, created_at, updated_at from credentials`
+	selectCredentialSQLByID  = selectCredentialSQL + ` where id=$1`
+	selectCredentialSQLByApp = selectCredentialSQL + ` where app=$1`
+	countCredentialSQL       = `select count(id) from credentials`
+	updateCredentialSQL      = `update credentials set (app, url, username, password, updated_at) = ($1, $2, $3, $4, $5) where id=$6`
 )
 
 type (
 	Credential struct {
 		SequentialIdentifier
 		App      string
+		Url      string
 		Username string
 		Password string
 		Timestamps
 	}
 )
 
-func (c *Credential) Save(
+func (m *Credential) Save(
 	ctx context.Context,
 	db db.SQLOperations,
 ) error {
-	c.Timestamps.Touch()
+	m.Timestamps.Touch()
 
 	var err error
-	if c.IsNew() {
+	if m.IsNew() {
 		err = db.QueryRowContext(
 			ctx,
 			createCredentialSQL,
-			c.App,
-			c.Username,
-			c.Password,
-			c.Timestamps.CreatedAt,
-		).Scan(&c.ID)
+			m.App,
+			m.Url,
+			m.Username,
+			m.Password,
+			m.Timestamps.CreatedAt,
+		).Scan(&m.ID)
 		return err
 	}
 	_, err = db.ExecContext(
 		ctx,
 		updateCredentialSQL,
-		c.App,
-		c.Username,
-		c.Password,
-		c.Timestamps.UpdatedAt,
-		c.ID,
+		m.App,
+		m.Url,
+		m.Username,
+		m.Password,
+		m.Timestamps.UpdatedAt,
+		m.ID,
 	)
 	return err
 }
 
-func (c *Credential) All(
+func (m *Credential) All(
 	ctx context.Context,
 	db db.SQLOperations,
 	filter *Filter,
 ) ([]*Credential, error) {
 	credentials := make([]*Credential, 0)
 
-	query, args := c.buildQuery(
+	query, args := m.buildQuery(
 		selectCredentialSQL,
 		filter,
 	)
@@ -83,10 +87,11 @@ func (c *Credential) All(
 		err = rows.Scan(
 			&credential.ID,
 			&credential.App,
+			&credential.Url,
 			&credential.Username,
 			&credential.Password,
-			&credential.UpdatedAt,
 			&credential.CreatedAt,
+			&credential.UpdatedAt,
 		)
 		if err != nil {
 			return credentials, err
@@ -97,24 +102,36 @@ func (c *Credential) All(
 	return credentials, err
 }
 
-func (c *Credential) ByID(
+func (m *Credential) ByID(
 	ctx context.Context,
 	db db.SQLOperations,
 	id int64,
 ) (*Credential, error) {
 	var credential Credential
 	row := db.QueryRowContext(ctx, selectCredentialSQLByID, id)
-	err := c.scan(row, &credential)
+	err := m.scan(row, &credential)
 	return &credential, err
 }
 
-func (*Credential) scan(
+func (m *Credential) ByApp(
+	ctx context.Context,
+	db db.SQLOperations,
+	app string,
+) (*Credential, error) {
+	var credential Credential
+	row := db.QueryRowContext(ctx, selectCredentialSQLByApp, app)
+	err := m.scan(row, &credential)
+	return &credential, err
+}
+
+func (m *Credential) scan(
 	row *sql.Row,
 	credential *Credential,
 ) error {
 	return row.Scan(
 		&credential.ID,
 		&credential.App,
+		&credential.Url,
 		&credential.Username,
 		&credential.Password,
 		&credential.CreatedAt,
@@ -122,12 +139,12 @@ func (*Credential) scan(
 	)
 }
 
-func (c *Credential) Count(
+func (m *Credential) Count(
 	ctx context.Context,
 	db db.SQLOperations,
 	filter *Filter,
 ) (int, error) {
-	query, args := c.buildQuery(
+	query, args := m.buildQuery(
 		countCredentialSQL,
 		&Filter{
 			Term: filter.Term,
@@ -138,7 +155,7 @@ func (c *Credential) Count(
 	return recordsCount, err
 }
 
-func (o *Credential) buildQuery(
+func (m *Credential) buildQuery(
 	query string,
 	filter *Filter,
 ) (string, []interface{}) {

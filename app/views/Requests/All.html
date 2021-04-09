@@ -10,6 +10,10 @@
   </div>
   {{end}}
 
+  <div>
+    <a href="{{url "Requests.New"}}">Add</a>
+  </div>
+
   <div class="requests">
   {{if .result.Data.Requests}}
   {{ template "paginate.html" .result.Data.Pagination}}
@@ -29,8 +33,8 @@
       {{range .result.Data.Requests}}
       <tr>
           <td>{{.App}}</td>
-          <td>{{.Milti}}</td>
-          <td>{{.Count}}</td>
+          <td>{{.Multi}}</td>
+          <td>{{.Number}}</td>
           <td>{{.Message}}</td>
           <td>{{.Times}}</td>
           <td>{{formatDate .CreatedAt}}</td>

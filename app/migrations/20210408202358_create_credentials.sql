@@ -6,6 +6,7 @@ SELECT 'up SQL query';
 create table credentials (
   id bigserial primary key,
   app varchar(255) not null,
+  url varchar(255) not null,
   username varchar(225) not null,
   password varchar(225) not null,
   created_at timestamptz not null default clock_timestamp(),

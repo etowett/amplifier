@@ -2,9 +2,9 @@ package job_handlers
 
 import (
 	"amplifier/app/entities"
-	"amplifier/app/jobs"
-	"amplifier/app/jobs/sms_jobs"
 	"amplifier/app/providers"
+	"amplifier/app/tasks"
+	"amplifier/app/tasks/sms_jobs"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -22,7 +22,7 @@ func NewATSendJobHandler(africasTalkingSender providers.AfricasTalkingSender) *A
 	}
 }
 
-func (h *ATSendJobHandler) Job() jobs.Job {
+func (h *ATSendJobHandler) Job() tasks.Job {
 	return &sms_jobs.ATSendJob{}
 }
 

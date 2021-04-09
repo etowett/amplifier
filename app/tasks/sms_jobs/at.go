@@ -1,7 +1,7 @@
 package sms_jobs
 
 import (
-	"amplifier/app/jobs"
+	"amplifier/app/tasks"
 	"encoding/json"
 )
 
@@ -41,10 +41,10 @@ func (h *ProcessATJob) JobBody() (string, error) {
 	return string(b), nil
 }
 
-func (h *ProcessATJob) JobOptions() []jobs.PerformJobOption {
-	return []jobs.PerformJobOption{
-		jobs.WithMaxConcurrency(10),
-		jobs.WithMaxFails(2),
-		jobs.WithLowPriority(),
+func (h *ProcessATJob) JobOptions() []tasks.PerformJobOption {
+	return []tasks.PerformJobOption{
+		tasks.WithMaxConcurrency(10),
+		tasks.WithMaxFails(2),
+		tasks.WithLowPriority(),
 	}
 }

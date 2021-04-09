@@ -1,4 +1,4 @@
-package jobs
+package tasks
 
 import (
 	"github.com/gocraft/work"

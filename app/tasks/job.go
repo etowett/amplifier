@@ -1,4 +1,4 @@
-package jobs
+package tasks
 
 type Job interface {
 	JobName() string
