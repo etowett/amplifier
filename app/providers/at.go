@@ -2,7 +2,6 @@ package providers
 
 import (
 	"amplifier/app/entities"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -95,45 +94,6 @@ func (p *AppAfricasTalkingSender) Send(
 	return &retData, nil
 }
 
-func makeJsonRequest(
-	targetUrl string,
-	reqBody []byte,
-	basicAuth string,
-	requestType string,
-	reqHeaders map[string]string,
-) (int, []byte, error) {
-
-	req, err := http.NewRequest(requestType, targetUrl, bytes.NewBuffer(reqBody))
-	req.Header.Set("Content-Type", "application/json")
-	if len(reqHeaders) > 0 {
-		for key, val := range reqHeaders {
-			req.Header.Add(key, val)
-		}
-	}
-	authData := strings.Split(basicAuth, ":")
-	if len(authData) > 1 {
-		req.SetBasicAuth(authData[0], authData[1])
-	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return 0, []byte(""), fmt.Errorf("client do: %v", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return 0, []byte(""), fmt.Errorf("error reading body: %v", err)
-	}
-
-	respStatus, err := strconv.Atoi(resp.Status)
-	if err != nil {
-		respStatus = 0
-	}
-
-	return respStatus, body, nil
-}
-
 func makeFormRequest(
 	targetUrl string,
 	reqBody map[string]string,
@@ -148,6 +108,9 @@ func makeFormRequest(
 	}
 
 	req, err := http.NewRequest(requestType, targetUrl, strings.NewReader(form.Encode()))
+	if err != nil {
+		return 0, []byte(""), fmt.Errorf("failed http newrequest: %v", err)
+	}
 	req.Header.Add("Content-Length", strconv.Itoa(len(form)))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Accept", "application/json")

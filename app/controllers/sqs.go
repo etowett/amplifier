@@ -1,10 +1,5 @@
 package controllers
 
-import (
-	"amplifier/app/entities"
-	"encoding/json"
-)
-
 // func processATRequests() {
 // 	theQueue, err := sqsConn.GetQueueURL(revel.Config.StringDefault("aft.requests_queue", ""))
 // 	if err != nil {
@@ -158,26 +153,26 @@ import (
 // 	}
 // }
 
-func doSendAft(data *string) error {
-	theData := map[string]interface{}{}
-	err := json.Unmarshal([]byte(*data), &theData)
-	if err != nil {
-		return err
-	}
+// func doSendAft(data *string) error {
+// 	theData := map[string]interface{}{}
+// 	err := json.Unmarshal([]byte(*data), &theData)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	recs := make([]*entities.SMSRecipient, 0)
-	for _, rec := range theData["recs"].([]interface{}) {
-		recs = append(recs, &entities.SMSRecipient{
-			Phone: rec.(map[string]interface{})["phone"].(string),
-		})
-	}
-	_, err = africasTalkingSender.Send(&entities.SendRequest{
-		SenderID: theData["sender_id"].(string),
-		Message:  theData["message"].(string),
-		To:       recs,
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	recs := make([]*entities.SMSRecipient, 0)
+// 	for _, rec := range theData["recs"].([]interface{}) {
+// 		recs = append(recs, &entities.SMSRecipient{
+// 			Phone: rec.(map[string]interface{})["phone"].(string),
+// 		})
+// 	}
+// 	_, err = africasTalkingSender.Send(&entities.SendRequest{
+// 		SenderID: theData["sender_id"].(string),
+// 		Message:  theData["message"].(string),
+// 		To:       recs,
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }

@@ -19,14 +19,35 @@ import (
 // Periodically count the users in the database.
 type SMSSender struct{}
 
-func (j SMSSender) Run() {
-	err := j.sendAt()
-	if err != nil {
-		revel.AppLog.Infof("could not send to at: %v", err)
-	}
-	revel.AppLog.Infof("done sending at message")
+type Recipient struct {
+	Number  string `json:"number"`
+	Message string `json:"message"`
+}
 
-	err = j.sendKomsner()
+func (j SMSSender) Run() {
+	if revel.Config.StringDefault("app.env", "local") == "local" {
+		revel.AppLog.Infof("Can not send cron sms in local")
+		return
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	reqNum := rand.Intn(100-4) + 2
+
+	recipients := make([]*entities.SMSRecipient, 0)
+	for _, rec := range j.getRecipients(reqNum) {
+		recipients = append(recipients, &entities.SMSRecipient{
+			Phone:   rec.Number,
+			Message: rec.Message,
+		})
+	}
+
+	// err := j.sendAt(recipients, reqNum)
+	// if err != nil {
+	// 	revel.AppLog.Infof("could not send to at: %v", err)
+	// }
+	// revel.AppLog.Infof("done sending at message")
+
+	err := j.sendKomsner(recipients, reqNum)
 	if err != nil {
 		revel.AppLog.Infof("could not send to komsner: %v", err)
 	}
@@ -35,60 +56,94 @@ func (j SMSSender) Run() {
 
 func init() {
 	revel.OnAppStart(func() {
-		jobs.Schedule("@every 1m", SMSSender{})
+		jobs.Schedule("@every 15m", SMSSender{})
 	})
 }
 
-func (j SMSSender) sendAt() error {
-	ctx := context.Background()
+// func (j SMSSender) sendAt(
+// 	recipients []*entities.SMSRecipient,
+// 	reqNum int,
+// ) error {
+// 	ctx := context.Background()
+// 	newCredential := &models.Credential{}
+// 	credential, err := newCredential.ByApp(ctx, db.DB(), "apisim")
+// 	if err != nil {
+// 		if err == sql.ErrNoRows {
+// 			revel.AppLog.Infof("could not find any at creds for at send")
+// 			return nil
+// 		}
+// 		return fmt.Errorf("could not get creds by app %v: %v", "apisim", err)
+// 	}
+// 	africasTalkingSender := providers.NewAfricasTalkingSenderWithParameters(
+// 		credential.Url,
+// 		credential.Username,
+// 		credential.Password,
+// 	)
+// 	_, err = africasTalkingSender.Send(&entities.SendRequest{
+// 		SenderID: "AmplifierJob",
+// 		Message:  fmt.Sprintf("Hello to %v from amplifier job at %v", reqNum, time.Now()),
+// 		To:       recipients,
+// 	})
+// 	if err != nil {
+// 		return fmt.Errorf("failed to send to at: %v", err)
+// 	}
+// 	return nil
+// }
 
+func (j SMSSender) sendKomsner(
+	recipients []*entities.SMSRecipient,
+	reqNum int,
+) error {
+	ctx := context.Background()
 	newCredential := &models.Credential{}
-	credential, err := newCredential.ByApp(ctx, db.DB(), "apisim")
+	credential, err := newCredential.ByApp(ctx, db.DB(), "komsner")
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("could not find any at creds for at send")
+			revel.AppLog.Infof("could not find any komsner creds for komsner send")
+			return nil
 		}
-		return fmt.Errorf("could not get creds by app %v: %v", "apisim", err)
+		return fmt.Errorf("could not get creds by app %v: %v", "komsner", err)
 	}
 
-	africasTalkingSender := providers.NewAfricasTalkingSenderWithParameters(
-		credential.Url,
-		credential.Username,
-		credential.Password,
+	values := []bool{true, false}
+	rand.Seed(time.Now().UnixNano())
+	isMulti := values[rand.Intn(len(values))]
+	smsBody := fmt.Sprintf(
+		"Send multi: %v to %d recs at %s.",
+		isMulti,
+		reqNum,
+		time.Now().String()[0:19],
 	)
 
-	rand.Seed(time.Now().UnixNano())
-	recs := j.getRecs(rand.Intn(1000 - 10))
-
-	recipients := make([]*entities.SMSRecipient, 0)
-	for _, num := range recs {
-		recipients = append(recipients, &entities.SMSRecipient{Phone: num})
-	}
-
-	_, err = africasTalkingSender.Send(&entities.SendRequest{
+	komsnerSender := providers.NewKomsnerSenderWithParameters(
+		credential.Url,
+		fmt.Sprintf("%v:%v", credential.Username, credential.Password),
+	)
+	_, err = komsnerSender.Send(&entities.SendRequest{
 		SenderID: "AmplifierJob",
-		Message:  fmt.Sprintf("Hello from amplifier job at %v", time.Now()),
+		Message:  smsBody,
 		To:       recipients,
+		Multi:    isMulti,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to send to at: %v", err)
+		return fmt.Errorf("failed to send to komsner: %v", err)
 	}
 	return nil
 }
 
-func (j SMSSender) sendKomsner() error {
-	return nil
-}
-
-func (j SMSSender) getRecs(num int) (numbers []string) {
+func (j SMSSender) getRecipients(num int) (recipients []*Recipient) {
 	for i := 0; i < num; i++ {
-		numbers = append(numbers, j.getPhone())
+		recipients = append(recipients, &Recipient{
+			Number:  j.getPhone(),
+			Message: fmt.Sprintf("Hello to you %v", i),
+		})
 	}
-	return numbers
+	return recipients
 }
 
 func (j SMSSender) getPhone() string {
-	prefix := []string{"+2557", "+2536", "+2547", "+2119", "+2568", "+2541"}
+	prefix := []string{"+2547", "+2541"}
+	// prefix := []string{"+2557", "+2536", "+2547", "+2119", "+2568", "+2541"}
 	net := []string{
 		"16", "17", "18", "20", "21", "22", "23", "25", "96", "27",
 	}

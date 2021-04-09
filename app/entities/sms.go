@@ -16,9 +16,12 @@ type (
 	}
 
 	SendRequest struct {
-		To       []*SMSRecipient
-		Message  string
-		SenderID string
+		To           []*SMSRecipient
+		Multi        bool
+		Message      string
+		SenderID     string
+		StatusUrl    string
+		StatusSecret string
 	}
 
 	SMSRecipient struct {
@@ -31,5 +34,19 @@ type (
 		SheetRow   int64   `json:"sheet_row"`
 		Route      string  `json:"route"`
 		IsValid    bool    `json:"is_valid"`
+	}
+
+	KomsnerResponse struct {
+		Success    bool                `json:"success"`
+		Status     int                 `json:"status"`
+		Message    string              `json:"message"`
+		Recipients []*KomsnerRecipient `json:"recipients"`
+	}
+
+	KomsnerRecipient struct {
+		Number string  `json:"number"`
+		Status string  `json:"status"`
+		Cost   float64 `json:"cost"`
+		ID     string  `json:"id"`
 	}
 )

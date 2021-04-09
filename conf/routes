@@ -20,6 +20,9 @@ GET         /user/:id                                   Users.Get
 GET         /credentials                                Credentials.All
 GET         /credentials/new                            Credentials.New
 POST        /credentials/new                            Credentials.Save
+GET         /credentials/edit/:id                       Credentials.Edit
+POST        /credentials/edit/:id                       Credentials.Update
+GET         /credentials/delete/:id                     Credentials.Delete
 
 GET         /requests                                   Requests.All
 GET         /requests/new                               Requests.New

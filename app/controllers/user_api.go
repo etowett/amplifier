@@ -5,6 +5,7 @@ import (
 	"amplifier/app/entities"
 	"amplifier/app/forms"
 	"amplifier/app/models"
+	"database/sql"
 	"net/http"
 	"strings"
 
@@ -19,9 +20,20 @@ type (
 )
 
 func (c UsersAPI) Save() revel.Result {
-	var status int
+	status := http.StatusCreated
+	ctx := c.Request.Context()
 	userForm := forms.User{}
-	c.Params.BindJSON(&userForm)
+	err := c.Params.BindJSON(&userForm)
+	if err != nil {
+		c.Log.Errorf("failed to bind to json user create api: %v", err)
+		status = http.StatusBadRequest
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Message: "Invalid form provided",
+			Status:  status,
+			Success: false,
+		})
+	}
 
 	v := c.Validation
 	userForm.Validate(v)
@@ -33,7 +45,54 @@ func (c UsersAPI) Save() revel.Result {
 		status = http.StatusBadRequest
 		c.Response.SetStatus(status)
 		return c.RenderJSON(entities.Response{
-			Message: strings.Join(retErrors, ","),
+			Message: strings.Join(retErrors, ", "),
+			Status:  status,
+			Success: false,
+		})
+	}
+
+	c.Log.Infof("userForm api: =[%+v]", userForm)
+
+	theUser := &models.User{}
+	userByMail, err := theUser.ByEmail(ctx, db.DB(), userForm.Email)
+	if err != nil && err != sql.ErrNoRows {
+		c.Log.Errorf("error getting user by email: %v", err)
+		status = http.StatusInternalServerError
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Message: "Internal error occured!",
+			Status:  status,
+			Success: false,
+		})
+	}
+
+	if userByMail.ID != 0 {
+		status = http.StatusBadRequest
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Message: "User with that email already exist!",
+			Status:  status,
+			Success: false,
+		})
+	}
+
+	userByUsername, err := theUser.ByUsername(ctx, db.DB(), userForm.Username)
+	if err != nil && err != sql.ErrNoRows {
+		c.Log.Errorf("error getting user by username: %v", err)
+		status = http.StatusInternalServerError
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Message: "Internal error occured!",
+			Status:  status,
+			Success: false,
+		})
+	}
+
+	if userByUsername.ID != 0 {
+		status = http.StatusBadRequest
+		c.Response.SetStatus(status)
+		return c.RenderJSON(entities.Response{
+			Message: "User with that Username already exist!",
 			Status:  status,
 			Success: false,
 		})
@@ -45,7 +104,7 @@ func (c UsersAPI) Save() revel.Result {
 		status = http.StatusInternalServerError
 		c.Response.SetStatus(status)
 		return c.RenderJSON(entities.Response{
-			Message: "Encountered an error",
+			Message: "Internal error occured!",
 			Status:  status,
 			Success: false,
 		})
@@ -59,7 +118,7 @@ func (c UsersAPI) Save() revel.Result {
 		PasswordHash: string(passwordHash[:]),
 	}
 
-	err = newUser.Save(c.Request.Context(), db.DB())
+	err = newUser.Save(ctx, db.DB())
 	if err != nil {
 		c.Log.Errorf("error insert user: %v", err)
 		status = http.StatusInternalServerError
@@ -71,7 +130,6 @@ func (c UsersAPI) Save() revel.Result {
 		})
 	}
 
-	status = http.StatusCreated
 	c.Response.SetStatus(status)
 	return c.RenderJSON(entities.Response{
 		Data:    newUser,

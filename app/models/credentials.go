@@ -16,6 +16,7 @@ const (
 	selectCredentialSQLByApp = selectCredentialSQL + ` where app=$1`
 	countCredentialSQL       = `select count(id) from credentials`
 	updateCredentialSQL      = `update credentials set (app, url, username, password, updated_at) = ($1, $2, $3, $4, $5) where id=$6`
+	deleteCredentialSQL      = `delete from credentials where id=$1`
 )
 
 type (
@@ -122,6 +123,24 @@ func (m *Credential) ByApp(
 	row := db.QueryRowContext(ctx, selectCredentialSQLByApp, app)
 	err := m.scan(row, &credential)
 	return &credential, err
+}
+
+func (m *Credential) Delete(
+	ctx context.Context,
+	db db.SQLOperations,
+	id int64,
+) (int64, error) {
+	res, err := db.ExecContext(ctx, deleteCredentialSQL, id)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsDeleted, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return rowsDeleted, nil
 }
 
 func (m *Credential) scan(
