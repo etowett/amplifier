@@ -1,3 +1,5 @@
+PG_URL='postgres://amplifier:amplifier@127.0.0.1/amplifier?sslmode=disable'
+
 run:
 	@revel run
 
@@ -27,27 +29,27 @@ migration:
 
 migrate_up:
 	@echo "Migrating up!"
-	@goose -dir app/migrations postgres 'postgres://amplifier:amplifier@127.0.0.1/amplifier?sslmode=disable' up
+	@goose -dir app/migrations postgres $(PG_URL) up
 	@echo "Done!"
 
 migrate_down:
 	@echo "Migrating down!"
-	@goose -dir app/migrations postgres 'postgres://amplifier:amplifier@127.0.0.1/amplifier?sslmode=disable' down
+	@goose -dir app/migrations postgres $(PG_URL) down
 	@echo "Done!"
 
 migrate_status:
 	@echo "Getting migration status!"
-	@goose -dir app/migrations postgres 'postgres://amplifier:amplifier@127.0.0.1/amplifier?sslmode=disable' status
+	@goose -dir app/migrations postgres $(PG_URL) status
 	@echo "Done!"
 
 migrate_reset:
 	@echo "Resetting migrations!"
-	@goose -dir app/migrations postgres 'postgres://amplifier:amplifier@127.0.0.1/amplifier?sslmode=disable' reset
+	@goose -dir app/migrations postgres $(PG_URL) reset
 	@echo "Done!"
 
 migrate_version:
 	@echo "Getting migration version!"
-	@goose -dir app/migrations postgres 'postgres://amplifier:amplifier@127.0.0.1/amplifier?sslmode=disable' version
+	@goose -dir app/migrations postgres $(PG_URL) version
 	@echo "Done!"
 
 migrate_redo: migrate_reset migrate_up

@@ -2,8 +2,8 @@ package job_handlers
 
 import (
 	"amplifier/app/entities"
-	"amplifier/app/jobs"
-	"amplifier/app/jobs/sms_jobs"
+	"amplifier/app/tasks"
+	"amplifier/app/tasks/sms_jobs"
 	"amplifier/app/work"
 	"context"
 	"encoding/json"
@@ -22,7 +22,7 @@ func NewATJobHandler(jobEnqueuer work.JobEnqueuer) *ATJobHandler {
 	}
 }
 
-func (h *ATJobHandler) Job() jobs.Job {
+func (h *ATJobHandler) Job() tasks.Job {
 	return &sms_jobs.ProcessATJob{}
 }
 

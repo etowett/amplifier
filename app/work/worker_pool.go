@@ -1,7 +1,7 @@
 package work
 
 import (
-	"amplifier/app/jobs"
+	"amplifier/app/tasks"
 	"context"
 	"fmt"
 	"time"
@@ -12,7 +12,7 @@ import (
 )
 
 type WorkerPool interface {
-	RegisterJobs(jobHandlers ...jobs.JobHandler)
+	RegisterJobs(jobHandlers ...tasks.JobHandler)
 	Start(ctx context.Context)
 	Stop()
 }
@@ -46,7 +46,7 @@ func NewWorkerPool(
 	return workerPool
 }
 
-func (wp *AppWorkerPool) RegisterJobs(jobHandlers ...jobs.JobHandler) {
+func (wp *AppWorkerPool) RegisterJobs(jobHandlers ...tasks.JobHandler) {
 
 	for _, jobHandler := range jobHandlers {
 		// Set up default options
@@ -80,7 +80,7 @@ func (wp *AppWorkerPool) Stop() {
 	wp.pool.Stop()
 }
 
-func (wp *AppWorkerPool) wrapJobHandler(jobHandler jobs.JobHandler) func(job *gowork.Job) error {
+func (wp *AppWorkerPool) wrapJobHandler(jobHandler tasks.JobHandler) func(job *gowork.Job) error {
 	return func(job *gowork.Job) error {
 		startTime := time.Now()
 

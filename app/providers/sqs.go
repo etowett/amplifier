@@ -47,12 +47,6 @@ func (c *SQSClient) MessageToQueue(
 	}
 
 	_, err = c.client.SendMessage(&sqs.SendMessageInput{
-		MessageAttributes: map[string]*sqs.MessageAttributeValue{
-			"User": &sqs.MessageAttributeValue{
-				DataType:    aws.String("String"),
-				StringValue: aws.String("Eutychus Towett"),
-			},
-		},
 		MessageBody: aws.String(string(jsonData)),
 		QueueUrl:    queueURL,
 	})

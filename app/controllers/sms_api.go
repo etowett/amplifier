@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"amplifier/app/entities"
-	"amplifier/app/jobs/sms_jobs"
+	"amplifier/app/tasks/sms_jobs"
 	"fmt"
 	"net/http"
 	"time"
